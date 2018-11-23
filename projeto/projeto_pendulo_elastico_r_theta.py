@@ -71,8 +71,7 @@ while (t >= cont_tempo): # Enquanto t for maior ou igual a variavel contador, es
 #Função para replicar a criação para varias possibilidades  
 def tabela(nome,lista):		
     arquivo = open(nome + '.txt', 'a')
-    for i in range(len(lista)):
-    	
+    for i in range(len(lista)): 	
         arquivo.write(str(lista[i]) + '\n')
     arquivo.close
 
