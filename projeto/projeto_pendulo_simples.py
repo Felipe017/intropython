@@ -35,7 +35,7 @@ while (t >= cont_tempo): # Enquanto t for maior ou igual a variavel contador, es
 
 # Calculando a lagrangeana obtemos a EDO de segunda ordem, isolando a aceleração da coordenada generalizada, obtemos a seguinte relação:
 
-    a_theta = - (g/m)*math.sin(thetai) # aceleração em theta
+    a_theta = - (g/ri)*math.sin(thetai) # aceleração em theta
     v_theta  = v_theta + a_theta*delta_tempo    # Sabemos também que velocidade = velocidade inicial + aceleração*tempo
     thetai = thetai + v_theta*delta_tempo # De forma análoga calculamos a posição
    
