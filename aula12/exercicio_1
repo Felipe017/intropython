@@ -1,0 +1,31 @@
+#criar uma matriz 5x5 e preencher determinados elementos com algum valor e depois acessa-lo 
+
+n = 5
+
+matrix = {}
+cont = 0
+
+for i in range(1,n+1): # Esse 'range' tem argumentos (1,n+1) para a primeira linha ser 1 e não 0, pois a contagem começa a partir do zero.
+    for j in range(1,n+1):
+        matrix[(i,j)] = 0
+        if i==1 and j==4:
+           cont = cont + 1
+           matrix[(i,j)] = cont
+
+        if i==3 and j==2:
+           cont = cont + 1
+           matrix[(i,j)] = cont
+
+        elif i==5 and j==4:
+           cont = cont + 1
+           matrix[(i,j)] = cont
+print(matrix)
+def elemento(i,j):
+    print('Digite as coordenadas do elemento')
+    i = int(input('linha: '))
+    j = int(input('coluna: '))
+    return (i,j)
+print(matrix.get(elemento(i,j)))
+p = int(input('deseja acessar mais alguma coordenada ? Sim (1) ou Não (0) '))
+while p>0:
+     print(matrix.get(elemento(i,j)))
