@@ -1,0 +1,29 @@
+import matplotlib.pyplot as plt 
+
+fin = open('dados_alunos.txt')
+linhas = fin.readlines()
+x = [] 
+y = []
+z = []
+for line in linhas:
+    #print (line)
+    column = line.strip().split('\t')
+    print (column)
+    x.append(column[0])
+    y.append(column[1])
+    z.append(column[2])
+    
+print(x)
+print(y)
+print(z)
+
+plt.hist(x, density=True, facecolor='g', alpha=0.75)
+plt.show()
+
+plt.hist(y, density=True, facecolor='g')
+plt.show()
+
+plt.hist(z, density=True, facecolor='g')
+plt.show()
+
+#Tem que ajustar
