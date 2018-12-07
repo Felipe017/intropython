@@ -1,0 +1,62 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+print('Programa para leitura de arquivos')
+arquivo = input('Digite o nome do arquivo: ')
+A = []
+
+def abrir_arquivos(arquivo):
+     arq = open(arquivo)
+     linhas = arq.readlines()
+     arq.close()
+#     print(linhas)
+     nomes = linhas[0].split()
+     for line in (linhas):
+         #aqui vamos obter os dados linha por linha, quer dizer idade altura e peso aluno por aluno
+         dados = line.split()
+#         print(len(dados),dados[0],type(dados[0]))
+         fdados = [float(x) for x in dados]
+#         print(len(fdados),fdados[0],type(fdados[0]))
+         A.append(fdados)
+abrir_arquivos(arquivo)
+
+"""
+print(len(A))
+print (A[0][0] , A[0][1] , A[0][2] , A[3][0], A[49][1])
+print(A)
+"""
+
+a = np.array(A)
+#print(a)
+aT = a.transpose()
+#print(aT) 
+
+dicionario={}
+
+for i  in  range (0,len(aT)):
+    dicionario[i] = aT[i]
+#print(dicionario[0])
+#print(dicionario[1])
+#print(dicionario[2])
+
+nome_coluna = []
+for i in range(len(aT)):
+    k = input("Digite o nome da coluna: ")
+    nome_coluna.append(k) 
+
+#nome_coluna=["idade","altura","massa"]
+
+diciNome={}
+
+for i  in  range (0,len(aT)):
+    diciNome[nome_coluna[i]] = aT[i]
+print(diciNome)
+p = 0
+while (p<len(aT)):
+      
+      plt.xlabel(nome_coluna[p])
+      plt.hist(diciNome[nome_coluna[p]])
+      plt.show()
+      p += 1  
+
+
