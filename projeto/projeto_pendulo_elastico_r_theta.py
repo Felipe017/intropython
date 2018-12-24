@@ -73,7 +73,7 @@ def tabela(nome,lista):
     arquivo = open(nome + '.txt', 'a')
     for i in range(len(lista)): 	
         arquivo.write(str(lista[i]) + '\n')
-    arquivo.close
+    #arquivo.close
 
 tabela('Lista Temporal', tn)
 tabela('Lista da posição do eixo x', x)
