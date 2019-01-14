@@ -7,7 +7,7 @@ import random
 '------------ Usuario insire a quantantidade de colisões e o valor do momento inicial do Foton ---------------'
 
 numero_colisoes = int(input('Digite o numero de colisões: '))
-momento_foton1 = float(input('Digite o valor do momento do fonton inicial: '))
+momento_foton1 = float(input('Digite o valor do momento do fonton inicial em Mev: '))
 n=0
 cosseno_teta=[]
 energia_eletron_final=[]
@@ -18,35 +18,28 @@ energia_foton_final=[]
 while(numero_colisoes>n):
 
      def cos ():
+     
           cosseno = random.randrange(-100,101)*random.random()/100 
           return cosseno
-     cos=cos() 
-     #print('cosseno: ',cos,)
+     cos=cos()
 
      from Particula import * # Modulo criado
      m_el=0.511 # A massa do eletron (meV)
      energia_foton1 = Particula(0,momento_foton1).energia()
      energia_eletron1 = Particula(m_el,0).energia()
-     #print('energia_eleton1: ',energia_eletron1, 'Mev')
-     #print('energia_foton1: ',energia_foton1, 'Mev')
 
      """ Encontrando as energias """
      #Definindo a energia do foton apos colisao
      energia_foton2 = ((energia_foton1)*(energia_eletron1))/(energia_eletron1 + energia_foton1*(1-cos))
-     #print('energia_foton2: ',energia_foton2, 'Mev')
 
      #Definindo a eneriga do eletron apos a colisao
      energia_eletron2 = energia_foton1 + energia_eletron1 - energia_foton2
-     #print('energia_eletron2: ',energia_eletron2, 'Mev')
      
      energia_eletron_final.append(energia_eletron2)
      cosseno_teta.append(cos)
      energia_foton_final.append(energia_foton2)
 
      n = n + 1
-
-#print('Lista dos valores do cosseno: ',cosseno_teta)
-#print('Lista com os valores da energia final do eletron: ',energia)
 
 '-------------------------------Função para criar arquivo a partir das listas--------------------------------'
 
@@ -74,12 +67,12 @@ plt.figure(1)      # Cria segunda janela
 plt.subplot(2,1,1) # Cria a área do gráfico de cima
 plt.plot(cosseno_teta, energia_eletron_final, 'ro') # Desenha do gráfico de cima
 plt.xlabel(nx)
-plt.ylabel('Energia Final do Eletron')
+plt.ylabel('Energia Final do Eletron (MeV)')
 
 plt.subplot(2,1,2)   # Cria a área do segundo gráfico
 plt.plot(cosseno_teta, energia_foton_final, 'bo')  # Desenha o gráfico de baixo
 plt.xlabel(nx)
-plt.ylabel('Energia Final do Foton')
+plt.ylabel('Energia Final do Foton (MeV)')
 plt.show()
 
 
