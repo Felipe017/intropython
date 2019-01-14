@@ -1,29 +1,85 @@
-"""Considerando o cosseno aleatório é preciso uma função que faça ele ser aleatório logo usamos a biblioteca random """
+'------------------------------- Bibliotescas utlizadas -----------------------------------------------------'
+
+import matplotlib.pyplot as plt
+import numpy as np
 import random
 
-def cos ():
-    cosseno = random.randrange(-100,101)*random.random()/100 
-    return cosseno
-cos=cos() 
-print('cosseno: ',cos,)
+'------------ Usuario insire a quantantidade de colisões e o valor do momento inicial do Foton ---------------'
 
-""" Criamos um objeto chamado particula, no qual está contido as informações basicas fornecidas pelo usuario """ 
-m_el=0.511 # A massa do eletron (meV)
+numero_colisoes = int(input('Digite o numero de colisões: '))
+momento_foton1 = float(input('Digite o valor do momento do fonton inicial: '))
+n=0
+cosseno_teta=[]
+energia_eletron_final=[]
+energia_foton_final=[]
 
-from Particula import *
+'----------------------------Loop para guardar cada valor em listas -------------------------------------------'
 
-energia_foton1 = Particula(0,5).energia()
-energia_eletron1 = Particula(m_el,0).energia()
-print('energia_eleton1: ',energia_eletron1, 'Mev')
-print('energia_foton1: ',energia_foton1, 'Mev')
+while(numero_colisoes>n):
 
-""" Encontrando as energias """
-#Definindo a energia do foton apos colisao
-energia_foton2 = ((energia_foton1)*(energia_eletron1))/(energia_eletron1 + energia_foton1*(1-cos))
-print('energia_foton2: ',energia_foton2, 'Mev')
+     def cos ():
+          cosseno = random.randrange(-100,101)*random.random()/100 
+          return cosseno
+     cos=cos() 
+     #print('cosseno: ',cos,)
 
-#Definindo a eneriga do eletron apos a colisao
-energia_eletron2 = energia_foton1 + energia_eletron1 - energia_foton2
-print('energia_eletron2: ',energia_eletron2, 'Mev')
+     from Particula import * # Modulo criado
+     m_el=0.511 # A massa do eletron (meV)
+     energia_foton1 = Particula(0,momento_foton1).energia()
+     energia_eletron1 = Particula(m_el,0).energia()
+     #print('energia_eleton1: ',energia_eletron1, 'Mev')
+     #print('energia_foton1: ',energia_foton1, 'Mev')
 
-#Em construção 
+     """ Encontrando as energias """
+     #Definindo a energia do foton apos colisao
+     energia_foton2 = ((energia_foton1)*(energia_eletron1))/(energia_eletron1 + energia_foton1*(1-cos))
+     #print('energia_foton2: ',energia_foton2, 'Mev')
+
+     #Definindo a eneriga do eletron apos a colisao
+     energia_eletron2 = energia_foton1 + energia_eletron1 - energia_foton2
+     #print('energia_eletron2: ',energia_eletron2, 'Mev')
+     
+     energia_eletron_final.append(energia_eletron2)
+     cosseno_teta.append(cos)
+     energia_foton_final.append(energia_foton2)
+
+     n = n + 1
+
+#print('Lista dos valores do cosseno: ',cosseno_teta)
+#print('Lista com os valores da energia final do eletron: ',energia)
+
+'-------------------------------Função para criar arquivo a partir das listas--------------------------------'
+
+def tabela(nome,lista):		
+    arquivo = open(nome + '.txt', 'a')
+    for i in range(len(lista)):
+        arquivo.write(str(lista[i]) + '\n')
+    arquivo.close
+
+tabela('Cosseno',cosseno_teta)
+tabela('Energia Final do Eletron',energia_eletron_final)
+tabela('Energia Final do Foton',energia_foton_final )
+
+'-------------------------------Criação e plotagem de gráficos-----------------------------------------------'
+
+nx = 'Cosseno'
+ny = 'Energia (Mev)'
+plt.plot (cosseno_teta,energia_eletron_final,'bo',cosseno_teta, energia_foton_final, 'ro')
+plt.xlabel(nx)
+plt.ylabel(ny)
+plt.show()    
+
+plt.figure(1)      # Cria segunda janela
+
+plt.subplot(2,1,1) # Cria a área do gráfico de cima
+plt.plot(cosseno_teta, energia_eletron_final, 'ro') # Desenha do gráfico de cima
+plt.xlabel(nx)
+plt.ylabel('Energia Final do Eletron')
+
+plt.subplot(2,1,2)   # Cria a área do segundo gráfico
+plt.plot(cosseno_teta, energia_foton_final, 'bo')  # Desenha o gráfico de baixo
+plt.xlabel(nx)
+plt.ylabel('Energia Final do Foton')
+plt.show()
+
+
