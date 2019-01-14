@@ -1,0 +1,29 @@
+"""Considerando o cosseno aleatório é preciso uma função que faça ele ser aleatório logo usamos a biblioteca random """
+import random
+
+def cos ():
+    cosseno = random.randrange(-100,101)*random.random()/100 
+    return cosseno
+cos=cos() 
+print('cosseno: ',cos,)
+
+""" Criamos um objeto chamado particula, no qual está contido as informações basicas fornecidas pelo usuario """ 
+m_el=0.511 # A massa do eletron (meV)
+
+from Particula import *
+
+energia_foton1 = Particula(0,5).energia()
+energia_eletron1 = Particula(m_el,0).energia()
+print('energia_eleton1: ',energia_eletron1, 'Mev')
+print('energia_foton1: ',energia_foton1, 'Mev')
+
+""" Encontrando as energias """
+#Definindo a energia do foton apos colisao
+energia_foton2 = ((energia_foton1)*(energia_eletron1))/(energia_eletron1 + energia_foton1*(1-cos))
+print('energia_foton2: ',energia_foton2, 'Mev')
+
+#Definindo a eneriga do eletron apos a colisao
+energia_eletron2 = energia_foton1 + energia_eletron1 - energia_foton2
+print('energia_eletron2: ',energia_eletron2, 'Mev')
+
+#Em construção 
