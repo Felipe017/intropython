@@ -1,3 +1,4 @@
+print('Programa de simulação de colisão, espalhamento Compton. Feito por Felipe Aguiar, Vitor Ramos e Anna Paula Mendes')
 '------------------------------- Bibliotescas utlizadas -----------------------------------------------------'
 
 import matplotlib.pyplot as plt
