@@ -1,46 +1,124 @@
 print('Programa de simulação de colisão, espalhamento Compton. Feito por Felipe Aguiar, Vitor Ramos e Anna Paula Mendes')
-'------------------------------- Bibliotescas utlizadas -----------------------------------------------------'
+'------------------------------- Bibliotecas utilizadas -----------------------------------------------------'
 
 import matplotlib.pyplot as plt
-import numpy as np
 import random
+import math 
 
-'------------ Usuario insire a quantantidade de colisões e o valor do momento inicial do Foton ---------------'
+from foton import * # Modulo criado para descrever os fotons
+from eletron import * # Modulo criado para descrever os eletrons
 
-numero_colisoes = int(input('Digite o numero de colisões: '))
-momento_foton1 = float(input('Digite o valor do momento do fonton inicial em Mev: '))
-n=0
-cosseno_teta=[]
-energia_eletron_final=[]
-energia_foton_final=[]
+'------------ Usuario insere a quantidade de colisões e o valor do momento inicial do Fóton ---------------'
 
+numero_colisoes = 0 
+while numero_colisoes <= 0:
+    try:
+        numero_colisoes = int(input('Digite o numero de colisões. Para uma distribuição continua no gráfico, recomenda-se valores acima de 5000: '))
+    except ValueError:
+        print("O valor inserido deve ser um número inteiro. tente de novo.")
+print('O valor computado foi', numero_colisoes, 'colisões')
+
+
+numero_de_fotons = 0 
+while numero_de_fotons <= 0:
+    try:
+        numero_de_fotons = int(input('Digite a quantidade de energias iniciais que deseja simular:'))
+    except ValueError:
+        print("O valor inserido deve ser um número inteiro. tente de novo:")
+print('O valor computado foi', numero_de_fotons, 'energias inciais.')
+
+
+'------------------------------criação das listas que terão os valores obtidos------------------------------'
+
+theta = []
+phi = []
+energia_eletron_final = []
+energia_foton_final = []
+Lambda_foton = []
+delta_lambda_foton_lista = []
+tri_momento_foton_final = []
+tri_momento_eletron_final = []
+
+'------------------------------funções para criar novas instancias de particulas------------------------------'
+
+def novo_foton(e_f_f, costheta):
+    # como o foton não possui massa, sua energia é igual ao seu momento
+    sintheta = math.sin(math.acos(costheta))
+    p_f_x = e_f_f * costheta # projeção do momento em x
+    p_f_y = e_f_f * sintheta #projeção do momento em y
+    
+    return foton(p_f_x, p_f_y)
+
+def novo_eletron(e_e_f, sinphi):
+    #usando a equação E^2 = m^2 + p^2, podemos obter o momento do elétron
+    p_e = ((e_e_f)**2 - (0.511)**2)**0.5
+    p_e_x = p_e * math.cos(math.asin(sinphi)) # projeção do momento em x
+    p_e_y = p_e * sinphi #projeção do momento em y
+        
+    return eletron(p_e_x, p_e_y)
+    
+'------------------------------função para o valor do cosseno variavel------------------------------'
+
+def func_cos ():     
+    cosseno = random.randrange(-100, 101)*random.random()/100 
+
+    return cosseno
+        
 '----------------------------Loop para guardar cada valor em listas -------------------------------------------'
 
-while(numero_colisoes>n):
+m=0
+while (numero_de_fotons>m):
 
-     def cos ():
-     
-          cosseno = random.randrange(-100,101)*random.random()/100 
-          return cosseno
-     cos=cos()
+    energia_inicial = 0
+    while 0.5 > energia_inicial or 3.5 < energia_inicial:
 
-     from Particula import * # Modulo criado
-     m_el=0.511 # A massa do eletron (meV)
-     energia_foton1 = Particula(0,momento_foton1).energia()
-     energia_eletron1 = Particula(m_el,0).energia()
+        try:
+            energia_inicial = float(input("Insira o valor da energia inicial do fóton. Este valor deve ser um número real entre 0.5 e 3.5 MeV. Caso o valor inserido esteja fora dessa faixa, tente novamente"))
+        except ValueError:
+            print("O valor inserido deve ser um número real entre 0.5 e 3.5. tente de novo.")
+    
+    n = 0
 
-     """ Encontrando as energias """
-     #Definindo a energia do foton apos colisao
-     energia_foton2 = ((energia_foton1)*(energia_eletron1))/(energia_eletron1 + energia_foton1*(1-cos))
+    while(numero_colisoes>n):
+    
+         cos_theta = func_cos() 
+         arc_cos = math.acos(cos_theta) # Angulo de dispersão do fóton
+         h = 4.135667*10**-21 # Constante de planck em MeV.s
+         energia_foton1 = foton(energia_inicial, 0).energia() # definimos o foton com momento só em x e igual a energia inicial
+         energia_eletron1 = eletron(0, 0).energia() # e o eletron com momento 0
+    
+         """ Encontrando as energias """
+         #Definindo a energia do foton apos colisao
+         energia_foton2 = ((energia_foton1)*(energia_eletron1))/(energia_eletron1 + energia_foton1*(1-cos_theta))
+    
+         #Definindo a energia do eletron apos a colisao
+         energia_eletron2 = energia_foton1 + energia_eletron1 - energia_foton2
+         
+         #Relacionando os angulos de espalhamento a partir da conservação do momento no eixo y, usando P.fóton * sin(theta) = P.elétron * sin(phi)
+         sin_phi = energia_foton2 * math.sin(math.acos(cos_theta)) / (( (energia_eletron2)**2 - (0.511)**2)**0.5 )
+         arc_sin_phi = math.asin(sin_phi)
+         
+         #criando novas instancias de particulas após a colisão
+         f_f = novo_foton(energia_foton2, cos_theta)
+         e_f = novo_eletron(energia_eletron2, sin_phi)
 
-     #Definindo a eneriga do eletron apos a colisao
-     energia_eletron2 = energia_foton1 + energia_eletron1 - energia_foton2
-     
-     energia_eletron_final.append(energia_eletron2)
-     cosseno_teta.append(cos)
-     energia_foton_final.append(energia_foton2)
+         #passando os valores pras listas
+         energia_eletron_final.append(energia_eletron2)
+         theta.append(arc_cos)
+         energia_foton_final.append(energia_foton2)
+         phi.append(arc_sin_phi)
+         tri_momento_foton_final.append(f_f.tri_vet())
+         tri_momento_eletron_final.append(e_f.tri_vet())
+         
+         """ Encontrando os comprimentos de onda dos fótons"""
+         lambda_foton1 = h / energia_foton1
+         lambda_foton2 = h / energia_foton2
+         delta_lambda_foton = lambda_foton2 - lambda_foton1
+         delta_lambda_foton_lista.append(delta_lambda_foton)
+         
+         n = n + 1
 
-     n = n + 1
+    m = m+1
 
 '-------------------------------Função para criar arquivo a partir das listas--------------------------------'
 
@@ -50,30 +128,41 @@ def tabela(nome,lista):
         arquivo.write(str(lista[i]) + '\n')
     arquivo.close
 
-tabela('Cosseno',cosseno_teta)
+tabela('theta',theta)
 tabela('Energia Final do Eletron',energia_eletron_final)
 tabela('Energia Final do Foton',energia_foton_final )
+tabela('phi', phi)
+tabela('Variação do comprimento de onda do Fóton (m)', delta_lambda_foton_lista)
+tabela('3-Vetor final do Fóton', tri_momento_foton_final)
+tabela('3-Vetor Final de Elétron', tri_momento_eletron_final )
 
 '-------------------------------Criação e plotagem de gráficos-----------------------------------------------'
 
-nx = 'Cosseno'
-ny = 'Energia (Mev)'
-plt.plot (cosseno_teta,energia_eletron_final,'bo',cosseno_teta, energia_foton_final, 'ro')
+nx = 'Theta (Rad)'
+ny = 'Energia (MeV)'
+plt.plot (theta,energia_eletron_final,'bo',theta, energia_foton_final, 'ro')
 plt.xlabel(nx)
 plt.ylabel(ny)
+plt.legend(['Energia do elétron dispersado', 'Energia do Fóton dispersado'])
 plt.show()    
 
 plt.figure(1)      # Cria segunda janela
 
 plt.subplot(2,1,1) # Cria a área do gráfico de cima
-plt.plot(cosseno_teta, energia_eletron_final, 'ro') # Desenha do gráfico de cima
+plt.plot(theta, energia_eletron_final, 'bo') # Desenha o gráfico de cima
 plt.xlabel(nx)
-plt.ylabel('Energia Final do Eletron (MeV)')
+plt.ylabel('Energia do elétron dispersado (MeV)')
 
 plt.subplot(2,1,2)   # Cria a área do segundo gráfico
-plt.plot(cosseno_teta, energia_foton_final, 'bo')  # Desenha o gráfico de baixo
+plt.plot(theta, energia_foton_final, 'ro')  # Desenha o gráfico de baixo
 plt.xlabel(nx)
-plt.ylabel('Energia Final do Foton (MeV)')
+plt.ylabel('Energia do Fóton dispersado (MeV)')
 plt.show()
 
 
+mx = 'Variação do comprimento de onda do Fóton (m)' 
+my = 'Energia (MeV)'
+plt.plot (delta_lambda_foton_lista, energia_foton_final, 'ro')
+plt.xlabel(mx)
+plt.ylabel(my)
+plt.show()    
