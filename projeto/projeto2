@@ -83,8 +83,8 @@ while (numero_de_fotons>m):
          cos_theta = func_cos() 
          arc_cos = math.acos(cos_theta) # Angulo de dispersão do fóton
          h = 4.135667*10**-21 # Constante de planck em MeV.s
-         energia_foton1 = foton(energia_inicial, 0).energia() # definimos o foton com momento só em x e igual a energia inicial
-         energia_eletron1 = eletron(0, 0).energia() # e o eletron com momento 0
+         energia_foton1 = foton(energia_inicial, 0,0).energia() # definimos o foton com momento só em x e igual a energia inicial
+         energia_eletron1 = eletron().energia() # e o eletron com momento 0
     
          """ Encontrando as energias """
          #Definindo a energia do foton apos colisao
