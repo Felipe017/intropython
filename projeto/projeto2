@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 import random
 import math 
 
-from foton import * # Modulo criado para descrever os fotons
-from eletron import * # Modulo criado para descrever os eletrons
+from Particula import * # Modulo criado para descrever os fotons e eletrons
 
 '------------ Usuario insere a quantidade de colisões e o valor do momento inicial do Fóton ---------------'
 
@@ -59,9 +58,9 @@ def novo_eletron(e_e_f, sinphi):
     
 '------------------------------função para o valor do cosseno variavel------------------------------'
 
-def func_cos ():     
+def func_cos ():
+         
     cosseno = random.randrange(-100, 101)*random.random()/100 
-
     return cosseno
         
 '----------------------------Loop para guardar cada valor em listas -------------------------------------------'
@@ -73,9 +72,9 @@ while (numero_de_fotons>m):
     while 0.5 > energia_inicial or 3.5 < energia_inicial:
 
         try:
-            energia_inicial = float(input("Insira o valor da energia inicial do fóton. Este valor deve ser um número real entre 0.5 e 3.5 MeV. Caso o valor inserido esteja fora dessa faixa, tente novamente"))
+            energia_inicial = float(input("Insira o valor da energia inicial do fóton. Este valor deve ser um número real entre 0.5 e 3.5 MeV. Caso o valor inserido esteja fora dessa faixa, tente novamente "))
         except ValueError:
-            print("O valor inserido deve ser um número real entre 0.5 e 3.5. tente de novo.")
+            print("O valor inserido deve ser um número real entre 0.5 e 3.5. tente de novo. ")
     
     n = 0
 
