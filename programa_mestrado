@@ -1,0 +1,740 @@
+#include "TCanvas.h"
+#include "TLine.h"
+#include "TLimit.h"
+#include "TColor.h"
+#include "TString.h"
+#include <tuple>
+#include "TGraph2D.h"
+#include "TGraph.h"
+//#include "setSPRACEColors.C" // Essa é a macro das cores do SPRACE. Esse arquivo setSPRACEColors.C tem que estar na mesma pasta que está a macro que você está usando pra gerar seus gráficos
+#include "TH1.h"
+#include "TLorentzVector.h"
+#include "TSystem.h"
+#include "TAttFill.h"
+#include "THStack.h"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <ios>
+#include <cmath>
+#include <algorithm>
+#include <iomanip>
+#include <fstream>
+#include <stdio.h>
+#include <sstream>
+#include <stdlib.h>
+#include <cstring>
+//#include "TNtuple.h"
+#include "TTree.h"
+//#include "TBranch.h"
+
+// system include files
+#include <memory>
+#include <map>
+#include <string>
+
+/*
+Simple macro showing how to access branches from the delphes output root file,
+loop over events, and plot simple quantities such as the jet pt and the di-electron invariant
+mass.
+
+root -l examples/Example1.C'("delphes_output.root")'
+*/
+
+#ifdef __CLING__
+R__LOAD_LIBRARY(libDelphes)
+#include "classes/DelphesClasses.h"
+#include "external/ExRootAnalysis/ExRootTreeReader.h"
+#include "external/ExRootAnalysis/ExRootResult.h"
+#endif
+
+//------------------------------------------------------------------------------
+
+ enum SPcolor {
+      SPred,
+      SPdred,
+      SPgreen,
+      SPdgreen,
+      SPblue,
+      SPdblue,
+      SPyellow,
+      SPdyellow,
+      SPbeige,
+      SPdbeige,
+      SPbrown,
+      SPdbrown,
+      SPgrey,
+      SPdgrey,
+      SPpurple,
+   };
+
+   int SPcolors[15] = {
+      TColor::GetColor(177, 4, 14),    TColor::GetColor(140, 21, 21),  TColor::GetColor(0, 155, 118),
+      TColor::GetColor(23, 94, 84),    TColor::GetColor(0, 152, 219),  TColor::GetColor(0, 124, 146),
+      TColor::GetColor(234, 171, 0),   TColor::GetColor(178, 111, 22), TColor::GetColor(210, 194, 149),
+      TColor::GetColor(179, 153, 93),  TColor::GetColor(141, 60, 30),  TColor::GetColor(94, 48, 50),
+      TColor::GetColor(182, 177, 169), TColor::GetColor(77, 79, 83),   TColor::GetColor(83, 40, 79),
+   };
+
+//------------------------------------------------------------------------------
+
+void ppTOheHe_13TeV(const char *inputFile)
+{
+  gSystem->Load("libDelphes");
+  //gROOT->ProcessLine(".x setSPRACEColors.C+");
+  // Create chain of root trees
+  TChain chain("Delphes");
+  chain.Add(inputFile);
+
+  // Create object of class ExRootTreeReader
+  ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
+  // Get pointers to branches used in this analysis
+  TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchElectron = treeReader->UseBranch("Electron");
+  TClonesArray *branchEvent = treeReader->UseBranch("Event");
+
+  TClonesArray *branchPhoton = treeReader->UseBranch("Photon");
+  TClonesArray *branchMissingET = treeReader->UseBranch("MissingET");
+
+  TClonesArray *branchMuon = treeReader->UseBranch("Muon");
+  TClonesArray *branchParticle = treeReader->UseBranch("Particle");
+
+  // Variáveis 
+  double Muon_n, Muon_n2, Muon_n1_t, Muon_n2_t; 
+
+  double n_s0;
+  double n_he; 
+  double n_muon, n_antimuon;
+
+  double n_s02;
+  double n_he2; 
+  double n_muon2, n_antimuon2;
+  
+  double delta_s0_muon;
+  double delta_s0_antimuon;
+  double delta_s0_muon_t;
+  double delta_s0_antimuon_t;
+  double planck = 6.58211915e-16; // eV.s 
+  double C = 3.0e+11; // mm/s
+  TLorentzVector s0;
+  TLorentzVector Muon1;
+  TLorentzVector Muon2;
+
+  TLorentzVector s0_3;
+  TLorentzVector Muon1_3;
+  TLorentzVector Muon2_3;      
+
+  using namespace std;
+  std::vector<double> Muon_PT;
+  std::vector<double> Muon_Eta;
+  std::vector<double> Muon_Phi;  
+  std::vector<double> Delta_s0_muon;
+  std::vector<double> Muon_Status;
+
+  std::vector<double> Antimuon_PT;
+  std::vector<double> Antimuon_Eta;
+  std::vector<double> Antimuon_Phi;
+  std::vector<double> Delta_s0_antimuon;
+  std::vector<double> Antimuon_Status; 
+
+  std::vector<double> he_m;
+  std::vector<double> he_pt;
+  std::vector<double> He_m; 
+  std::vector<double> He_pt;
+ 
+  std::vector<double> He_m_inv; 
+
+  std::vector<double> Position_he;
+  std::vector<double> Position_He;
+ 
+  std::vector<double> s0_m_inv; 
+  std::vector<double> s0_Status; 
+
+  std::vector<double> Muon_PT_t;
+  std::vector<double> Muon_Eta_t;
+  std::vector<double> Muon_Phi_t;
+  std::vector<double> Delta_s0_muon_t; 
+
+  std::vector<double> Antimuon_PT_t;
+  std::vector<double> Antimuon_Eta_t;
+  std::vector<double> Antimuon_Phi_t; 
+  std::vector<double> Delta_s0_antimuon_t;
+
+  std::vector<double> n_mu1;
+  std::vector<double> n_mu2;
+
+  std::vector<double> he_m_t;
+  std::vector<double> he_pt_t;
+  std::vector<double> He_m_t; 
+  std::vector<double> He_pt_t;
+ 
+  std::vector<double> He_m_inv_t; 
+
+  std::vector<double> Position_he_t;
+  std::vector<double> Position_He_t;
+ 
+  std::vector<double> s0_m_inv_t;
+  std::vector<double> s0_Status_t; 
+
+  std::vector<double> F_charge;
+ 
+  std::vector<double> gamma;
+  std::vector<double> Relativistic_Position_He;
+  std::vector<double> Relativistic_Position_he; 
+  std::vector<double> Relativistic_Position_He_t;
+  std::vector<double> Relativistic_Position_he_t;
+ 
+  // Parte 2 
+  
+  //std::vector<double> p_med_he;
+  //std::vector<double> p_medq_he;
+  //std::vector<double> p_med_He;
+  //std::vector<double> p_medq_He;
+  // Book histograms
+   
+   TH1D  *histMuon_PT = new TH1D("Muon_PT", "Muon PT", 100, 0.0, 500.0); 
+   TH1D  *histMuon_Eta = new TH1D("Muon_Eta", "Muon Eta", 125, -2.5, 2.5);
+   TH1D  *histMuon_Phi = new TH1D("Muon_Phi", "Muon Phi", 70, -3.5, 3.5 );
+   TH1D  *histD_s0_muon = new TH1D("Delta_s0_muon", "Delta s0 muon", 10, 0, 10);
+   TH1D  *histMuon_Status= new TH1D("Muon_Status", "Muon Status", 10, 0, 100);	  
+
+   TH1D  *histAntimuon_PT = new TH1D("Antimuon_PT", "Antimuon PT", 100, 0.0, 500.0);
+   TH1D  *histAntimuon_Eta = new TH1D("Antimuon_Eta", "Antimuon Eta", 125, -2.5, 2.5);
+   TH1D  *histAntimuon_Phi = new TH1D("Antimuon_Phi", "Antimuon Phi", 70, -3.5, 3.5);
+   TH1D  *histD_s0_antimuon = new TH1D("Delta_s0_antimuon", "Delta_s0_antimuon", 10, 0, 10);
+   TH1D  *histAntimuon_Status= new TH1D("Antimuon_Status", "Antimuon Status", 10, 0, 100);		  
+
+   TH1D  *histMuon_n = new TH1D("Muon_n", "Size", 1, 0.0, 10);
+   TH1D  *histn_mu1 = new TH1D("n_mu1", "Size", 1, 0.0, 10);
+
+   TH1D  *histhe_m = new TH1D("he_m", "M", 100, 0.0, 500.0); 
+   TH1D  *histHe_m = new TH1D("He_m", "M", 100, 0.0, 500.0);
+   TH1D  *histhe_pt = new TH1D("he_pt", "Pt", 100, 0.0, 500.0); 
+   TH1D  *histHe_pt = new TH1D("He_pt", "Pt", 100, 0.0, 500.0); 
+   TH1D  *histHe_m_inv = new TH1D("He_m_inv", "Pt", 100, 0.0, 500.0);
+   TH1D  *hists0_m_inv = new TH1D("s0_m_inv", "Pt", 10, 0.001, 0.10);
+   TH1D  *hists0_Status= new TH1D("s0_Status", "s0 Status", 10, 0, 100);
+
+   //TH1D  *hist_Ctau = new TH1D("C_Tau", "ctau", 10, 0.0, 10.0);
+   TH1D  *hist_position_he = new TH1D("Position_he", "delta x", 10, 0.0, 100.0);
+   TH1D  *hist_position_He = new TH1D("Position_He", "delta x", 10, 0.0, 100.0);
+   TH1D  *hist_F_charge = new TH1D("F_charge", "Charge F", 10, -10.0, 10.0); //mudei 25/02/2021
+   TH1D  *hist_rel_position_he = new TH1D("Relativistic_Position_he", "cTal (mm/c)", 100, 0.0, 1000.0);
+   TH1D  *hist_rel_position_He = new TH1D("Relativistic_Position_He", "cTal (mm/c)", 100, 0.0, 1000.0);
+
+   TH1D  *hist_gamma = new TH1D("gamma", "Fator Gamma", 10, 0.0, 100.0);
+ // Book histograms Tree3
+   
+   TH1D  *histMuon_PT_t = new TH1D("Muon_PT_t", "Muon PT", 100, 0.0, 500.0); 
+   TH1D  *histMuon1_Eta_t = new TH1D("Muon_Eta_3", "Muon Eta", 125, -2.5, 2.5);
+   TH1D  *histMuon1_Phi_t = new TH1D("Muon_Phi_3", "Muon Phi", 70, -3.5, 3.5); 
+   TH1D  *histD_s0_muon_t = new TH1D("Delta_s0_muon_t", "Delta_s0_muon", 70, -3.5, 3.5);	                                         
+
+   TH1D  *histAntimuon_PT_t = new TH1D("Antimuon_PT_t", "Antimuon PT", 100, 0.0, 500.0);
+   TH1D  *histAntimuon_Eta_t = new TH1D("Antimuon_Eta_t", "Antimuon Eta", 125, -2.5, 2.5);
+   TH1D  *histAntimuon_Phi_t = new TH1D("Antimuon_Phi_t", "Antimuon Phi", 70, -3.5, 3.5);
+   TH1D  *histD_s0_antmuon_t = new TH1D("Delta_s0_antimuon_t", "Delta_s0_antimuon", 70, -3.5, 3.5);	
+
+   TH1D  *histMuon_n_t = new TH1D("Muon_n_t", "Size", 1, 0.0, 10);
+   TH1D  *histn_mu2 = new TH1D("n_mu2", "Size", 1, 0.0, 10);
+
+   TH1D  *histhe_m_t = new TH1D("he_m_t", "M", 100, 0.0, 500.0); 
+   TH1D  *histHe_m_t = new TH1D("He_m_t", "M", 100, 0.0, 500.0); 
+   TH1D  *histhe_pt_t = new TH1D("he_pt_t", "Pt", 100, 0.0, 500.0); 
+   TH1D  *histHe_pt_t = new TH1D("He_pt_t", "Pt", 100, 0.0, 500.0); 
+   TH1D  *histHe_m_inv_t = new TH1D("He_m_inv_t", "Pt", 100, 0.0, 500.0);
+   TH1D  *hists0_m_inv_t = new TH1D("s0_m_inv_t", "Pt", 10, 0.001, 0.10);
+   TH1D  *hists0_Status_t = new TH1D("s0_Status_t", "s0 Status", 10, 0.0, 100.0);	  
+
+   //TH1D  *hist_Ctau_t = new TH1D("C_Tau_t", "ctau", 10, 0.0, 10.0);
+   TH1D  *hist_position_he_t = new TH1D("Position_he_t", "cTal (mm/c)", 100, 0.0, 1000.0);
+   TH1D  *hist_position_He_t = new TH1D("Position_He_t", "cTal (mm/c)", 100, 0.0, 1000.0);
+   TH1D  *hist_rel_position_he_t = new TH1D("Relativistic_Position_he_t", "cTal (mm/c)", 100, 0.0, 1000.0);
+   TH1D  *hist_rel_position_He_t = new TH1D("Relativistic_Position_He_t", "cTal (mm/c)", 100, 0.0, 1000.0);
+
+  std::vector<double> gamma;
+  std::vector<double> Relativistic_Position_He;
+  std::vector<double> Relativistic_Position_he; 
+  std::vector<double> Relativistic_Position_He_t;
+  std::vector<double> Relativistic_Position_he_t;
+
+  TFile *f = new TFile("heHe_test_breno_run2.root","RECREATE");
+
+  TTree *tree1 = new TTree("tree1","teste");
+
+  tree1->Branch("Muon_PT",&Muon_PT);
+  tree1->Branch("Muon_Eta",&Muon_Eta);
+  tree1->Branch("Muon_Phi",&Muon_Phi);
+  tree1->Branch("Delta_s0_muon",&Delta_s0_muon);
+  tree1->Branch("Muon_Status",&Muon_Status);
+  tree1->Branch("Antimuon_PT",&Antimuon_PT);
+  tree1->Branch("Antimuon_Eta",&Antimuon_Eta);
+  tree1->Branch("Antimuon_Phi",&Antimuon_Phi);
+  tree1->Branch("Delta_s0_antimuon",&Delta_s0_antimuon);
+  tree1->Branch("Antimuon_Status",&Antimuon_Status);
+  tree1->Branch("Muon_n",&Muon_n);
+  //tree1->Branch("n_mu1",&n_mu1);
+  tree1->Branch("he_m",&he_m);
+  tree1->Branch("he_pt",&he_pt);
+  tree1->Branch("He_m",&He_m);
+  tree1->Branch("He_pt",&He_pt);
+  tree1->Branch("He_m_inv",&He_m_inv);
+  tree1->Branch("s0_m_inv",&s0_m_inv);
+  tree1->Branch("s0_Status",&s0_Status);
+
+  tree1->Branch("Position_he",&Position_he);
+  tree1->Branch("Position_He",&Position_He);
+  tree1->Branch("Relativistic_Position_he",&Relativistic_Position_he);
+  tree1->Branch("Relativistic_Position_He",&Relativistic_Position_He);
+  tree1->Branch("F_charge",&F_charge); //mudei 25/02/2021
+  tree1->Branch("gamma",&gamma);
+ 
+
+  TTree *tree2 = new TTree("tree2","teste2");
+  tree2->Branch("Muon_PT_t",&Muon_PT_t);
+  tree2->Branch("Muon_Eta_t",&Muon_Eta_t);
+  tree2->Branch("Muon_Phi_t",&Muon_Phi_t);
+  tree2->Branch("Delta_s0_muon_t",&Delta_s0_muon_t);
+  tree2->Branch("Antimuon_PT_t",&Antimuon_PT_t);
+  tree2->Branch("Antimuon_Eta_t",&Antimuon_Eta_t);
+  tree2->Branch("Antimuon_Phi_t",&Antimuon_Phi_t);
+  tree2->Branch("Delta_s0_antimuon_t",&Delta_s0_antimuon_t);
+  //tree2->Branch("Muon_n_t",&Muon_n_t);
+  tree2->Branch("he_m_t",&he_m_t);
+  tree2->Branch("he_pt_t",&he_pt_t);
+  tree2->Branch("He_m_t",&He_m_t);
+  tree2->Branch("He_pt_t",&He_pt_t);
+  tree2->Branch("He_m_inv_t",&He_m_inv_t);
+  tree2->Branch("s0_m_inv_t",&s0_m_inv_t);
+  tree2->Branch("s0_Status_t",&s0_Status_t);
+
+  tree2->Branch("Position_he_t",&Position_he_t);
+  tree2->Branch("Position_He_t",&Position_He_t);
+
+  tree1->Branch("Relativistic_Position_he_t",&Relativistic_Position_he_t);
+  tree1->Branch("Relativistic_Position_He_t",&Relativistic_Position_He_t);
+
+  TTree *tree3 = new TTree("tree3","teste3");
+  tree3->Branch("n_mu1",&n_mu1);
+  tree3->Branch("n_mu2",&n_mu2);
+
+  Long64_t allEntries = treeReader->GetEntries();
+
+  cout << "** Chain contains " << allEntries << " events" << endl;
+
+  GenParticle *particle;
+  Electron *electron;
+  Photon *photon;
+
+  Track *track;
+  Tower *tower;
+
+  Jet *jet;
+  TObject *object;
+
+  TLorentzVector momentum;
+
+  Float_t Eem, Ehad;
+  Bool_t skip;
+
+  Long64_t entry;
+
+  Int_t i, j, pdgCode;
+  // Loop over all events
+  n_s0 = 0;
+  n_he = 0;
+  n_muon = 0;
+  n_antimuon = 0;
+
+  n_s02 = 0;
+  n_he2 = 0;
+  n_muon2 = 0;
+  n_antimuon2 = 0;
+
+  double p_med_he;
+  double p_medq_he;
+  double p_med_He;
+  double p_medq_He;
+
+  double delta_x_he;
+  double delta_x_He;
+
+  double delta_p_he;
+  double delta_p_He;
+  
+  double g; // Lorentz factor
+
+  delta_p_he = 0;
+  delta_p_He = 0;
+
+  delta_x_he = 0;
+  delta_x_He = 0;
+
+  p_med_he=0;
+  p_medq_he=0;
+  p_med_He=0;
+  p_medq_He=0;
+
+  for(entry = 0; entry < allEntries; ++entry){
+  //cout << "** Event = " << entry << " events" << endl;
+ // Muon_n_3 = 0;
+   // Load selected branches with data from specified event
+  treeReader->ReadEntry(entry);
+  int n = 0;
+  int o = 0;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	for(Int_t i=0; i < branchParticle->GetEntriesFast(); i++){
+		//n_mu1.clear(); //1000101 é o He ou F
+	  GenParticle *gen = (GenParticle*) branchParticle->At(i);
+  		if(abs(gen->PID) == 1000101){ //(5000011 for 1000101)
+			n_he = n_he + 1;
+			
+	  	}
+  		if(abs(gen->PID) == 255){ //(5000012 for 255)
+			n_s0 = n_s0 + 1;
+  		}
+		if(abs(gen->PID) == 13){
+  	    	n = n + 1;
+		//n_mu1.push_back(n);
+		//cout<< "Status muon = "<< gen->Status <<endl;
+  		}
+  		if(gen->PID == 13){
+  	    	n_muon = n_muon + 1;
+		//cout<< "Status muon = "<< gen->Status <<endl;
+  		}
+		if(gen->PID == -13){
+  	    	n_antimuon = n_antimuon + 1;
+		//cout<< "Status antimuon = "<< gen->Status <<endl;
+  		}
+ 	 }
+	for(Int_t i=0; i < branchParticle->GetEntriesFast(); i++){	
+
+		//cout<< "Passei 1" <<endl;
+		Muon_PT.clear();
+		Muon_Eta.clear();
+  		Muon_Phi.clear(); 
+		Delta_s0_muon.clear();
+  		Muon_Status.clear();  	
+
+  		Antimuon_PT.clear();
+  		Antimuon_Eta.clear();
+  		Antimuon_Phi.clear(); 
+		Delta_s0_antimuon.clear();
+ 		Antimuon_Status.clear(); 
+  
+		n_mu1.clear();
+
+  		He_m_inv.clear(); 
+  		s0_m_inv.clear();
+		s0_Status.clear(); 
+
+		he_m.clear();
+		he_pt.clear();
+		He_m.clear(); 
+		He_pt.clear(); 
+
+		Position_he.clear();
+		Position_He.clear();
+
+                gamma.clear();
+		Relativistic_Position_He.clear();
+		Relativistic_Position_he.clear(); 
+
+		F_charge.clear();//mudei 25/02/2021
+                //p_med_he.clear();
+  		//p_medq_he.clear();
+  		//p_med_He.clear();
+  		//p_medq_He.clear();
+
+  		GenParticle *gen = (GenParticle*) branchParticle->At(i);
+	        if(abs(gen->PID) == 1000101){ //(5000011 for 1000101 "He" or "F")
+		o = o + 1;
+                
+                F_charge.push_back(gen->Charge);	//mudei 25/02/2021	
+		//cout<< "Selecionei o He " << o << "| Pt = " << gen->P4().Pt() << "| Eta = " << gen->Eta << "| Phi = " << gen->Phi << "| i =" << i << "| Status = " << gen->Status <<endl;
+		He_m_inv.push_back(gen->P4().M());
+		}
+	if(abs(gen->PID) == 255){ // s0 (5000012 for 255)
+		if(gen->Status > 0 && gen->Status < 2){	
+		s0 = gen->P4();
+		s0_Status.push_back(gen->Status);
+		s0_m_inv.push_back(gen->P4().M());
+		n = n + 1;
+		//cout<< "Selecionei o s0 " << n << "| Pt = " << s0.Pt() << "| Eta = " << gen->Eta << "| Phi = " << gen->Phi << "| i =" << i << "| Status = " << gen->Status <<endl;
+		Muon_n = 0;
+		Muon_n2 = 0;
+                delta_s0_muon = 0;
+		delta_s0_antimuon = 0;
+
+			for(Int_t j=0; j < branchParticle->GetEntriesFast(); j++){
+			//cout<< "Passei 2" <<endl;
+			GenParticle *muon = (GenParticle*) branchParticle->At(j);
+				g=0;
+				if(muon->PID == 13){ // Selected muon- (muon1)
+				   if(muon->Status > 0 && muon->Status < 2){
+					if(abs(muon->Eta) < 2.5){
+					     //if(abs( muon->T - s0->T ) < 1.0e-3){	
+						Muon_n = Muon_n + 1;
+						Muon_Status.push_back(muon->Status);
+						Muon1 = muon->P4();
+						//n_mu1.clear();
+						//cout<< "tree 1	Selecionei o muon "<< Muon_n << " Pt = " << Muon1.Pt() <<endl;
+						delta_s0_muon = sqrt(pow(s0.Eta() - muon->Eta,2)+pow(s0.Phi() - muon->Phi,2));
+						//cout<< "tree 1	Delta s0_muon "<< delta_s0_muon <<endl;
+					        Delta_s0_muon.push_back(delta_s0_muon);
+						he_m.push_back(((Muon1) + (s0)).M());
+	  					he_pt.push_back(((Muon1) + (s0)).Pt());
+
+						Position_he.push_back(muon->T*C); 
+
+						g = (((Muon1) + (s0)).P())/((((Muon1) + (s0)).M())*(((Muon1) + (s0)).V()));
+						gamma.push_back(g);
+						Relativistic_Position_he.push_back(muon->T*C/g);
+						//cout<< " Valor de X = " << (Muon1) + (s0)).X() << "$$$  Valor calculei = " << planck/(2*((Muon1) + (s0)).Pt()) << endl;
+						p_med_he = ((Muon1) + (s0)).Pt() + p_med_he;
+	  					p_medq_he = pow(((Muon1) + (s0)).Pt(), 2) + p_medq_he;
+					     //}	
+					}
+				   }  // if muon->Status
+				} 
+//
+//
+			g=0;
+				if(muon->PID == -13){ // Selected muon+ (muon2)
+				    if(muon->Status > 0 && muon->Status < 2){
+					if(abs(muon->Eta) < 2.5){
+					     //if(abs( muon->T - s0->T ) < 1.0e-3){
+						Muon_n2 = Muon_n2 + 1;
+						Muon2 = muon->P4();
+						Antimuon_Status.push_back(muon->Status);
+						//cout<< "tree 1	Selecionei o antimuon "<< Muon_n2 << " Pt = " << Muon2.Pt() <<endl;
+						delta_s0_antimuon = sqrt(pow(s0.Eta() - muon->Eta,2)+pow(s0.Phi() - muon->Phi,2));
+						//cout<< "tree 1	Delta s0_antimuon "<< delta_s0_antimuon <<endl;
+						Delta_s0_antimuon.push_back(delta_s0_antimuon);
+						He_m.push_back(((Muon2) + (s0)).M());
+			  			He_pt.push_back(((Muon2) + (s0)).Pt());
+						Position_He.push_back(muon->T*C);
+
+						g = (((Muon1) + (s0)).P())/((((Muon1) + (s0)).M())*(((Muon1) + (s0)).V()));
+						//gamma.push_back(g);
+						Relativistic_Position_He.push_back(muon->T*C/g);	
+					     //}				
+					}
+				  } // if muon->Status
+				}
+	        	} // for(Int_t j=0; j < branchParticle->GetEntriesFast()
+               }   // if status s0
+ 	} // if(abs(gen->PID) == 5000011)      	
+		if(gen->PID == -13){ // Selected muon- (muon2)
+			if(abs(gen->Eta) < 2.5){
+			    if(gen->Status > 0 && gen->Status < 2){
+				Muon2 = gen->P4();					
+				Antimuon_PT.push_back(gen->PT);
+  				Antimuon_Eta.push_back(gen->Eta);
+  				Antimuon_Phi.push_back(gen->Phi);
+			    }
+			}
+		} 
+
+		if(gen->PID == 13){ // Selected muon+ (muon1)
+			if(abs(gen->Eta) < 2.5){
+		            if(gen->Status > 0 && gen->Status < 2){
+				Muon1 = gen->P4();
+				Muon_PT.push_back(gen->PT);
+  				Muon_Eta.push_back(gen->Eta);
+  				Muon_Phi.push_back(gen->Phi);
+			    }
+			}
+		}
+
+	//cout<< "Passei 3" <<endl;
+	tree1->Fill();
+	}
+	//cout<< "p_med_he = " << p_med_he << " p_medq_he = " << p_medq_he <<endl; 
+        delta_p_he = sqrt((p_medq_he - pow(p_med_he, 2))); 
+	delta_x_he = planck/delta_p_he;
+	 // For Particle i
+	//cout<< "Passei 4" <<endl;
+        //tree1->Fill();
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int n2 = 0;
+//int n3 = 0;
+  for(Int_t i=0; i < branchParticle->GetEntriesFast(); i++){
+  GenParticle *gen = (GenParticle*) branchParticle->At(i);
+  	if(abs(gen->PID) == 1000101){ //(5000011 for 1000101)
+		n_he2 = n_he2 + 1;
+  	}
+  	if(abs(gen->PID) == 255){ //(5000012 for 255)
+		n_s02 = n_s02 + 1;
+  	}
+  }
+ // n_mu2.clear();
+  //int n3 = 0;
+  //n_mu2.clear();
+  for(Int_t j=0; j < branchMuon->GetEntriesFast(); j++){
+//	n3 = n3 + 1; 
+//	n_mu2.push_back(n3);
+	Muon *muon = (Muon*) branchMuon->At(j);
+  	if(muon->Charge < 0){ 
+  	    n_muon2 = n_muon2 + 1;
+	}
+	if(muon->Charge > 0){ 
+  	    n_antimuon2 = n_antimuon2 + 1;
+	}
+  }
+	for(Int_t i=0; i < branchParticle->GetEntriesFast(); i++){
+
+		Muon_PT_t.clear();
+		Muon_Eta_t.clear();
+  		Muon_Phi_t.clear(); 
+		Delta_s0_muon_t.clear(); 
+
+  		Antimuon_PT_t.clear();
+  		Antimuon_Eta_t.clear();
+  		Antimuon_Phi_t.clear(); 
+		Delta_s0_antimuon_t.clear(); 
+
+		n_mu2.clear();
+
+  		He_m_inv_t.clear(); 
+  		s0_m_inv_t.clear();
+		s0_Status_t.clear();
+
+		he_m_t.clear();
+		he_pt_t.clear();
+		He_m_t.clear(); 
+		He_pt_t.clear(); 
+
+		Position_he_t.clear();
+		Position_He_t.clear();
+
+		Relativistic_Position_He_t.clear();
+  		Relativistic_Position_he_t.clear();
+
+  		GenParticle *gen = (GenParticle*) branchParticle->At(i);
+
+	        if(abs(gen->PID) == 1000101){	//(5000011 for 1000101)	
+		//cout<< "PID do HE = " << gen->PID << "Massa do He" << gen->P4().M()<<endl;
+		He_m_inv_t.push_back(gen->P4().M());
+		}
+	  if(abs(gen->PID) == 255){ // s0 (5000012 for 255)
+		s0_3 = gen->P4();
+		if(gen->Status > 0 && gen->Status < 2){
+	        s0_Status_t.push_back(gen->Status);
+		s0_m_inv_t.push_back(gen->P4().M());
+		n2 = n2 + 1;
+		//cout<< "tree 2 Selecionei o s0 " << n2 << " Pt = " << s0_3.Pt() << " i = " << i <<endl;
+
+// *******************************************************************************************************************
+		Muon_n1_t = 0;
+		Muon_n2_t = 0;
+			for(Int_t j=0; j < branchMuon->GetEntriesFast(); j++){
+			//cout<< "Passei "<< j <<endl;
+			Muon *muon = (Muon*) branchMuon->At(j);
+				if(muon->Charge < 0){ // Selected muon- (muon1) ADD EXIGENCIA STATUS 3 
+					g=0;
+					if(abs(muon->Eta) < 2.5){
+					    // if(abs( muon->T - s0->T ) < 1.0e-3){
+						Muon_n1_t = Muon_n1_t + 1;
+						//n_mu2.push_back(Muon_n);
+						Muon1_3 = muon->P4();
+						delta_s0_muon_t = sqrt(pow(s0_3.Eta() - muon->Eta,2)+pow(s0_3.Phi()- muon->Phi,2));
+						Delta_s0_muon_t.push_back(delta_s0_muon_t);
+						//cout<< "1	Selecionei o muon "<< Muon_n << " Pt = " << Muon1.Pt() <<endl;
+						//cout<< "tree 2	Delta s0_muon_t " << delta_s0_muon_t <<endl;
+						he_m_t.push_back(((Muon1_3) + (s0_3)).M());
+  						he_pt_t.push_back(((Muon1_3) + (s0_3)).Pt());
+					
+						Position_he_t.push_back(muon->T*C);
+
+						g = (((Muon1) + (s0)).P())/((((Muon1) + (s0)).M())*(((Muon1) + (s0)).V()));
+						//gamma.push_back(g);
+						Relativistic_Position_He_t.push_back(muon->T*C/g);
+
+						Muon_PT_t.push_back(muon->PT);
+	  					Muon_Eta_t.push_back(muon->Eta);
+	  					Muon_Phi_t.push_back(muon->Phi);
+					     //}
+					}
+				} 
+				g=0;
+				if(muon->Charge > 0){ // Selected muon+ (muon2) ADD EXIGENCIA STATUS 3 
+					if(abs(muon->Eta) < 2.5){
+					     //if(abs( muon->T - s0->T ) < 1.0e-3){
+						Muon_n2_t = Muon_n2_t + 1;
+						Muon2_3 = muon->P4();
+						//cout<< "1	Selecionei o antimuon "<< Muon_n2 << " Pt = " << Muon2.Pt() <<endl;
+						delta_s0_antimuon_t = sqrt(pow(s0_3.Eta() - muon->Eta,2)+pow(s0_3.Phi() - muon->Phi,2));
+						//cout<< "	tree 2	Selecionei o antimuon "<< Muon_n2 << " Pt = " << Muon2_3.Pt() << " Eta = " << Muon2_3.Eta() << " Phi = " << Muon2_3.Phi() <<endl;
+						//cout<< "1	Selecionei o antimuon o mesmo " << Muon_n2 << " Pt = " << muon->PT << " Eta = " << muon->Eta << " Phi = " << muon->Phi <<endl;
+						//cout<< "	tree 2	Delta s0_antimuon_t " << delta_s0_muon_t <<endl;
+						Delta_s0_antimuon_t.push_back(delta_s0_antimuon_t);
+						He_m_t.push_back(((Muon2_3) + (s0_3)).M());
+			  			He_pt_t.push_back(((Muon2_3) + (s0_3)).Pt());
+
+						Position_He_t.push_back(muon->T*C);
+
+						Antimuon_PT_t.push_back(muon->PT);
+	  					Antimuon_Eta_t.push_back(muon->Eta);
+	  					Antimuon_Phi_t.push_back(muon->Phi);
+					     //}
+					}
+				}
+				//cout<< "Números de múons = " << Muon_n + Muon_n2 <<endl;
+				//n_mu2.push_back(Muon_n + Muon_n2);
+	        	} // for(Int_t j=0; j < branchParticle->GetEntriesFast()
+// *******************************************************************************************************************
+			//tree2->Fill();
+		}	// if s0 (gen->Status > 0 && gen->Status < 2){
+	  } // if(abs(gen->PID) == 5000012){ // s0
+		//tree2->Fill();
+/*
+		int teste = 0;
+		for(Int_t i=0; i < branchMuon->GetEntriesFast(); i++){
+
+			Muon_PT_t.clear();
+			Muon_Eta_t.clear();
+  			Muon_Phi_t.clear(); 
+
+  			Antimuon_PT_t.clear();
+  			Antimuon_Eta_t.clear();
+  			Antimuon_Phi_t.clear(); 	
+
+			Muon *mu = (Muon*) branchMuon->At(i);
+
+        		if(mu->Charge > 0){ // Selected muon- (muon2)
+				if(abs(mu->Eta) < 2.5){//ADD EXIGENCIA STATUS 3 
+				Antimuon_PT_t.push_back(mu->PT);
+  				Antimuon_Eta_t.push_back(mu->Eta);
+  				Antimuon_Phi_t.push_back(mu->Phi);
+				}
+			} 
+
+			if(mu->Charge < 0){ // Selected muon+ (muon1)
+				if(abs(mu->Eta) < 2.5){//ADD EXIGENCIA STATUS 3 
+				Muon_PT_t.push_back(mu->PT);
+  				Muon_Eta_t.push_back(mu->Eta);
+  				Muon_Phi_t.push_back(mu->Phi);
+				}
+			}
+		}
+ */
+	tree2->Fill();
+	} // For Particle i
+	//cout<< "Números de múons (Pythia 8) = " << Muon_n + Muon_n2 <<endl;
+        //cout<< "Números de múons (Delphes) = " << Muon_n1_t + Muon_n2_t <<endl;
+	n_mu2.push_back(Muon_n1_t + Muon_n2_t);
+        n_mu1.push_back(Muon_n + Muon_n2);
+	tree3->Fill();
+  }  // For allEntries 
+cout<< "Tree 1 Números de s0 total = " << n_s0 <<endl; 
+cout<< "Tree 1 Números de he total = " << n_he <<endl; 
+cout<< "Tree 1 Números de muon = " << n_muon << " E Antimúons = " << n_antimuon << " Total = " << n_muon+ n_antimuon <<endl;
+
+cout<< "tree 2 Números de s0 total = " << n_s02 <<endl; 
+cout<< "tree 2 Números de he total = " << n_he2 <<endl; 
+cout<< "tree 2 Números de muon = " << n_muon2 << " E Antimúons = " << n_antimuon2 << " Total = " << n_muon2+ n_antimuon2 <<endl;  
+
+  f->Write();
+}
