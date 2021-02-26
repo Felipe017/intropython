@@ -252,12 +252,6 @@ void ppTOheHe_13TeV(const char *inputFile)
    TH1D  *hist_rel_position_he_t = new TH1D("Relativistic_Position_he_t", "cTal (mm/c)", 100, 0.0, 1000.0);
    TH1D  *hist_rel_position_He_t = new TH1D("Relativistic_Position_He_t", "cTal (mm/c)", 100, 0.0, 1000.0);
 
-  std::vector<double> gamma;
-  std::vector<double> Relativistic_Position_He;
-  std::vector<double> Relativistic_Position_he; 
-  std::vector<double> Relativistic_Position_He_t;
-  std::vector<double> Relativistic_Position_he_t;
-
   TFile *f = new TFile("heHe_test_breno_run2.root","RECREATE");
 
   TTree *tree1 = new TTree("tree1","teste");
